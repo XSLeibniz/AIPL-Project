@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实时摄像头画面</title>
+</head>
+<body>
+    <div style="display: flex;">
+        <div style="flex: 1;">
+            <h1>实时摄像头画面</h1>
+            <video id="video" width="640" height="480" autoplay></video>
+            <button onclick="captureAndSend()">捕获并发送</button>
+            <br>
+            <label for="name">姓名:</label>
+            <input type="text" id="name" name="name"><br><br>
+            <label for="age">年龄:</label>
+            <input type="text" id="age" name="age"><br><br>
+            <label for="gender">性别:</label>
+            <input type="text" id="gender" name="gender"><br><br>
+            <button onclick="submitData()">提交</button>
+        </div>
+        <div style="flex: 1;">
+            <h2>东南大学多模态心理评估系统</h2> <!-- 添加的标题 -->
+            <h2>时域波形图</h2>
+            <!-- 此处插入时域波形图 -->
+            <canvas id="waveform" width="400" height="200"></canvas>
+        </div>
+    </div>
+    <div>
+        <h2>柱状图</h2>
+        <!-- 此处插入柱状图 -->
+        <canvas id="barchart" width="400" height="200"></canvas>
+        <h2 style="margin-left: 420px;">语音情绪识别</h2> <!-- 添加的标题 -->
+    </div>
+
+    <script>
+        function captureAndSend() {
+            var video = document.getElementById('video');
+            var canvas = document.createElement('canvas');
+            var context = canvas.getContext('2d');
+
+            // 将视频画面绘制到canvas上
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // 将canvas中的图像转换为base64编码的字符串
+            var imageData = canvas.toDataURL('image/jpeg');
+
+            // 发送图像数据到后端服务器
+            fetch('/analyze_image', {
+                method: 'POST',
+                body: JSON.stringify({ image_data: imageData }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('后端返回的处理结果：', data);
+            })
+            .catch(error => {
+                console.error('发生错误：', error);
+            });
+        }
+
+        // 获取摄像头画面
+        navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function(stream) {
+            var video = document.getElementById('video');
+            video.srcObject = stream;
+            video.play();
+        })
+        .catch(function(err) {
+            console.log('摄像头访问被拒绝：', err);
+        });
+
+        // 以下是提交表单数据的函数
+        function submitData() {
+            var name = document.getElementById('name').value;
+            var age = document.getElementById('age').value;
+            var gender = document.getElementById('gender').value;
+
+            // 这里可以将姓名、年龄、性别等数据发送到后端进行处理
+            console.log('提交的数据：', name, age, gender);
+        }
+    </script>
+</body>
+</html>
+
+
